@@ -16,7 +16,7 @@ public class ServerTest2{
 	void startServer(){                         
 		try{
 			server=new ServerSocket(7778);
-			System.out.println("¼­¹ö¼ÒÄÏÀÌ »ı¼ºµÇ¾ú½À´Ï´Ù.");
+			System.out.println("ì„œë²„ì†Œì¼“ì´ ìƒì„±ë˜ì—ˆìŠµë‹ˆë‹¤.");
 			while(true){
 				
 				Socket socket=server.accept(); 
@@ -24,7 +24,7 @@ public class ServerTest2{
 				rt.start(); 
 				
 				bMan.add(rt);
-				System.out.println("Á¢¼ÓÀÚ ¼ö: "+bMan.size());
+				System.out.println("ì ‘ì†ì ìˆ˜: "+bMan.size());
 				}
 			}catch(Exception e){
 				System.out.println(e);
@@ -90,7 +90,7 @@ public class ServerTest2{
 						  writer.println("[FULL]");        
 					  }
 				  
-				  else if(roomNumber>=1 && msg.startsWith("[STONE]"))
+				  else if(roomNumber>=1 && msg.startsWith("[CARD]"))
 					  bMan.sendTorthers(this, msg);
 				  
 				  else if(msg.startsWith("[MSG]"))
@@ -136,8 +136,8 @@ public class ServerTest2{
 					  writer=null; 
 					  socket=null;
 					  
-					  System.out.println(userName+"´ÔÀÌ Á¢¼ÓÀ» ²÷¾ú½À´Ï´Ù.");
-					  System.out.println("Á¢¼ÓÀÚ ¼ö: "+bMan.size());
+					  System.out.println(userName+"ë‹˜ì´ ì ‘ì†ì„ ëŠì—ˆìŠµë‹ˆë‹¤.");
+					  System.out.println("ì ‘ì†ì ìˆ˜: "+bMan.size());
 					  
 					  bMan.sendToRoom(roomNumber,"[DISCONNECT]"+userName);
 					  
