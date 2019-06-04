@@ -2,54 +2,202 @@ package so_gong;
 
 import java.awt.*;
 import java.net.*;
+import java.nio.Buffer;
 import java.io.*;
 import java.util.*;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.awt.image.BufferedImage;
 
-public class client extends Frame implements Runnable, ActionListener {
+class Card extends JFrame implements ActionListener{
+	private JLabel l1;
+	private JLabel l2;
+	private BufferedImage i1;
+	private BufferedImage i2;
+	private String info = "ê²Œì„ ì¤‘ì§€";
+	
+	private boolean enable = false;
+	private boolean running = false;
+	private PrintWriter writer;
+	private JTextField input;
+	private JButton button;
+	
+	int[] card = new int[11];
+	void init() {
+		 for(int i=1;i<=10;i++) {
+			 card[i] = i;
+		 }
+	 }
+	
+	public void call_number() {
+		 int temp;
+		 double randomV;
+		 int i;
+		 Random r = new Random();
+		 r.setSeed(System.currentTimeMillis());
+		 while(true) {
+			 i = r.nextInt(9)+1;
+			 if(card[i]!=-1) {
+				 temp = card[i];
+				 card[i] =-1;
+				 break;
+			 }
+		 }
+		 
+		 String s;
+		 s = Integer.toString(temp);
+		 writer.println("[CARD]"+s);
+	 }
+	
+	private int chip = 40;
+	public Card(Container p) {
+		try {
+			i1 = ImageIO.read(new File("./image/card_0.png"));
+			i2 = ImageIO.read(new File("./image/card_0.png"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		l1 = new JLabel(new ImageIcon(i1));
+		l2 = new JLabel(new ImageIcon(i2));
+		l1.setBounds(50,50,230,400);
+		l2.setBounds(400,50,230,400);
+		input = new JTextField();
+		input.setBounds(50,480,50,25);
+		button = new JButton("ë°°íŒ…");
+		button.setBounds(100,480,70,25);
+		button.addActionListener(this);
+		p.add(l1);
+		p.add(l2);
+		p.add(input);
+		p.add(button);
+	}
+	public void startGame(String col,Label l) {
+		running = true;
+		if(col.equals("FIRST")) {
+			enable = true;
+			l.setText("ì¹©ì„ ë°°íŒ… í•˜ì‹­ì‹œì˜¤.");
+		}
+		else {
+			enable = false;
+			l.setText("ìƒëŒ€ë°©ì´ ì¹©ì„ ë² íŒ… ì¤‘ì…ë‹ˆë‹¤.");
+		}
+		
+	}
+	
+	public void stopGame() {
+		reset();
+		writer.println("[STOPGAME]");
+		enable = false;
+		running = false;
+	}
+	public boolean isRunning() {
+		return running;
+	}
+	
+	public boolean check() {
+		if(chip == 0) {
+			return false;
+		}
+		else 
+			return true;
+	}
+	
+	public void reset() {
+		
+	}
+	public void setEnable(boolean enable) {
+		this.enable = enable;
+	}
+	public void setWriter(PrintWriter writer) {
+		this.writer = writer;
+	}
+	
+	public void set_op(String s,Container p) {
+		try {
+			i2 = ImageIO.read(new File("./image/card_"+s+".png"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		l2.setIcon(new ImageIcon(i2));
+	}
+	
+	public void actionPerformed(ActionEvent ac) {
+		if(ac.getSource() == button) {
+			String s = "[CHIP]";
+			String k = input.getText();
+			s = s+k;
+			writer.println(s);
+			
+		}
+	}
+	public void info(String s,Label l) {
+		String a = "ìƒëŒ€ë°©ì´ "+s.substring(6)+"ê°œë¥¼ ë°°íŒ…í•˜ì˜€ìŠµë‹ˆë‹¤.";
+		l.setText(a);
+	}
+	
+}
+
+
+public class client extends JFrame implements Runnable, ActionListener {
+	
 	private TextArea msgView = new TextArea("",1,1,1);
 	private TextField sendBox = new TextField("");
 	private TextField nameBox = new TextField();
 	private TextField roomBox = new TextField("0");
 	
-	private Label pInfo = new Label("´ë±â½Ç : ¸í");
+	
+	private Label pInfo = new Label("ëŒ€ê¸°ì‹¤ : ëª…");
 	
 	private java.awt.List pList = new java.awt.List();
-	private Button startButton = new Button("°ÔÀÓ ½ÃÀÛ");
-	private Button stopButton = new Button("±â±Ç");
-	private Button enterButton = new Button("ÀÔÀå");
-	private Button exitButton = new Button("´ë±â½Ç·Î");
+	private Button startButton = new Button("ê²Œì„ ì‹œì‘");
+	private Button stopButton = new Button("ê¸°ê¶Œ");
+	private Button enterButton = new Button("ì…ì¥");
+	private Button exitButton = new Button("ëŒ€ê¸°ì‹¤ë¡œ");
 	
-	private Label infoView = new Label("ÀÎµğ¾ğ Æ÷Ä¿",1);
+	private Label infoView = new Label("ì¸ë””ì–¸ í¬ì»¤",1);
 	
 	private BufferedReader reader;
 	private PrintWriter writer;
 	private Socket socket;
 	private int roomNumber = -1;
-	private String userName = null;
+	private String userName = null; 
+
+	Card card;
 	
 	public client(String title) {
 		super(title);
+		
 		setLayout(null);
 		msgView.setEditable(false);
-		infoView.setBounds(10,10,480,30);
+		infoView.setBounds(100,10,480,30);
 		infoView.setBackground(new Color(200,200,255));
-		
 		add(infoView);
-		
 		Panel p = new Panel();
+	
+		card = new Card(this);
 		p.setBackground(new Color(200,255,255));
 		p.setLayout(new GridLayout(3,3));
-		p.add(new Label("ÀÌ ¸§:",2));
+		p.add(new Label("ì´ ë¦„:",2));
 		p.add(nameBox);
-		p.add(new Label("¹æ ¹øÈ£:",2));
+		p.add(new Label("ë°© ë²ˆí˜¸:",2));
 		p.add(roomBox);
 		p.add(enterButton);
 		p.add(exitButton);
 		enterButton.setEnabled(false);
-		p.setBounds(500,30,250,70);
-		
+		p.setBounds(700,30,250,70);
 		Panel p2 = new Panel();
 		p2.setBackground(new Color(255,255,100));
 		p2.setLayout(new BorderLayout());
@@ -61,13 +209,13 @@ public class client extends Frame implements Runnable, ActionListener {
 		p.add(p2_1, "South");
 		startButton.setEnabled(false);
 		stopButton.setEnabled(false);
-		p2.setBounds(500,100,250,180);
+		p2.setBounds(700,100,250,180);
 		
 		Panel p3 = new Panel();
 		p3.setLayout(new BorderLayout());
 		p3.add(msgView,"Center");
 		p3.add(sendBox,"South");
-		p3.setBounds(500,300,250,250);
+		p3.setBounds(700,300,250,250);
 		add(p);
 		add(p2);
 		add(p3);
@@ -77,6 +225,8 @@ public class client extends Frame implements Runnable, ActionListener {
 		exitButton.addActionListener(this);
 		startButton.addActionListener(this);
 		stopButton.addActionListener(this);
+		
+		
 		
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent win) {
@@ -106,14 +256,14 @@ public class client extends Frame implements Runnable, ActionListener {
 		else if(ac.getSource() == enterButton) {
 			try {
 				if(Integer.parseInt(roomBox.getText())<1) {
-					infoView.setText("¹æ ¹øÈ£°¡ Àß¸øµÇ¾ú½À´Ï´Ù. 1 ÀÌ»ó");
+					infoView.setText("ë°© ë²ˆí˜¸ê°€ ì˜ëª»ë˜ì—ˆìŠµë‹ˆë‹¤. 1 ì´ìƒ");
 					return;
 				}
 				writer.println("[ROOM]"+Integer.parseInt(roomBox.getText()));
 				msgView.setText("");
 			}
 			catch(Exception ie) {
-				infoView.setText("ÀÔ·ÂÇÏ½Å »çÇ×¿¡ ¿À·ù°¡ ÀÖ½À´Ï´Ù.");
+				infoView.setText("ì…ë ¥í•˜ì‹  ì‚¬í•­ì— ì˜¤ë¥˜ê°€ ìˆìŠµë‹ˆë‹¤.");
 			}
 		}
 		else if(ac.getSource() == exitButton) {
@@ -126,7 +276,7 @@ public class client extends Frame implements Runnable, ActionListener {
 		else if(ac.getSource() == startButton) {
 			try {
 				writer.println("[START]");
-				infoView.setText("»ó´ëÀÇ °áÁ¤À» ±â´Ù¸®´Â Áß ÀÔ´Ï´Ù,");
+				infoView.setText("ìƒëŒ€ì˜ ê²°ì •ì„ ê¸°ë‹¤ë¦¬ëŠ” ì¤‘ ì…ë‹ˆë‹¤,");
 				startButton.setEnabled(false);
 			}
 			catch(Exception e) {}
@@ -134,7 +284,7 @@ public class client extends Frame implements Runnable, ActionListener {
 		else if(ac.getSource() == stopButton) {
 			try {
 				writer.println("[DROPGAME]");
-				endGame("±â±Ç ÇÏ¿´½À´Ï´Ù.");
+				endGame("ê¸°ê¶Œ í•˜ì˜€ìŠµë‹ˆë‹¤.");
 			}
 			catch(Exception e) {
 				
@@ -155,7 +305,7 @@ public class client extends Frame implements Runnable, ActionListener {
 		if(userName == null) {
 			String name = nameBox.getText().trim();
 			if(name.length()<=2||name.length()>10) {
-				infoView.setText("ÀÌ¸§ÀÌ Àß¸øµÇ¾ú½À´Ï´Ù. 3~10ÀÚ");
+				infoView.setText("ì´ë¦„ì´ ì˜ëª»ë˜ì—ˆìŠµë‹ˆë‹¤. 3~10ì");
 				nameBox.requestFocus();
 				return;
 			}
@@ -166,7 +316,7 @@ public class client extends Frame implements Runnable, ActionListener {
 		}
 		msgView.setText("");
 		writer.println("[ROOM]0");
-		infoView.setText("´ë±â½Ç¿¡ ÀÔÀåÇÏ¼Ì½À´Ï´Ù.");
+		infoView.setText("ëŒ€ê¸°ì‹¤ì— ì…ì¥í•˜ì…¨ìŠµë‹ˆë‹¤.");
 		roomBox.setText("0");
 		enterButton.setEnabled(true);
 		exitButton.setEnabled(false);
@@ -181,14 +331,18 @@ public class client extends Frame implements Runnable, ActionListener {
 					if(!msg.equals("[ROOM]0")) {
 						enterButton.setEnabled(false);
 						exitButton.setEnabled(true);
-						infoView.setText(msg.substring(6)+"¹ø ¹æ¿¡ ÀÔÀåÇÏ¼Ì½À´Ï´Ù.");
+						infoView.setText(msg.substring(6)+"ë²ˆ ë°©ì— ì…ì¥í•˜ì…¨ìŠµë‹ˆë‹¤.");
 					}
 					else
-						infoView.setText("´ë±â½Ç¿¡ ÀÔÀåÇÏ¼Å½À´Ï´Ù.");
+						infoView.setText("ëŒ€ê¸°ì‹¤ì— ì…ì¥í•˜ì…”ìŠµë‹ˆë‹¤.");
 					roomNumber = Integer.parseInt(msg.substring(6));
 				}
+				else if(msg.startsWith("[CARD]")) {
+					String temp = msg.substring(6);
+					card.set_op(temp,this);
+				}
 				else if(msg.startsWith("[FULL]")) {
-					infoView.setText("¹æÀÌ Â÷¼­ ÀÔÀåÇÒ ¼ö ¾ø½À´Ï´Ù.");
+					infoView.setText("ë°©ì´ ì°¨ì„œ ì…ì¥í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
 				}
 				else if(msg.startsWith("[PLAYERS]")) {
 					nameList(msg.substring(9));
@@ -196,22 +350,22 @@ public class client extends Frame implements Runnable, ActionListener {
 				else if(msg.startsWith("[ENTER]")) {
 					pList.add(msg.substring(7));
 					playersInfo();
-					msgView.append("["+msg.substring(7)+"]´ÔÀÌ ÀÔÀåÇÏ¿´½À´Ï´Ù.");
+					msgView.append("["+msg.substring(7)+"]ë‹˜ì´ ì…ì¥í•˜ì˜€ìŠµë‹ˆë‹¤.");
 				}
 				else if(msg.startsWith("[EXIT]")) {
 					pList.remove(msg.substring(6));
 					playersInfo();
-					msgView.append("["+msg.substring(6)+"]´ÔÀÌ ´Ù¸¥ ¹æÀ¸·Î ÀÔÀåÇÏ¿´½À´Ï´Ù.\n");
+					msgView.append("["+msg.substring(6)+"]ë‹˜ì´ ë‹¤ë¥¸ ë°©ìœ¼ë¡œ ì…ì¥í•˜ì˜€ìŠµë‹ˆë‹¤.\n");
 					if(roomNumber !=0){
-						endGame("»ó´ë°¡ ³ª°¬½À´Ï´Ù.");
+						endGame("ìƒëŒ€ê°€ ë‚˜ê°”ìŠµë‹ˆë‹¤.");
 					}
 				}
 				else if(msg.startsWith("[DISCONNECT]")) {
 					pList.remove(msg.substring(12));
 					playersInfo();
-					msgView.append("["+msg.substring(12)+"]´ÔÀÌ Á¢¼ÓÀ» ²÷¾ú½À´Ï´Ù.");
+					msgView.append("["+msg.substring(12)+"]ë‹˜ì´ ì ‘ì†ì„ ëŠì—ˆìŠµë‹ˆë‹¤.");
 					if(roomNumber != 0)
-						endGame("»ó´ë°¡ ³ª°¬½À´Ï´Ù.");
+						endGame("ìƒëŒ€ê°€ ë‚˜ê°”ìŠµë‹ˆë‹¤.");
 				}
 				else if(msg.startsWith("[DROPGAME]")) {
 					
@@ -222,26 +376,36 @@ public class client extends Frame implements Runnable, ActionListener {
 				else if(msg.startsWith("[LOSE]")) {
 					
 				}
+				else if(msg.startsWith("[WHO]")) {
+					card.init();
+					String who = msg.substring(5);
+					card.startGame(who,infoView);
+					card.call_number();
+					stopButton.setEnabled(true);
+				}
+				else if(msg.startsWith("[CHIP]")) {
+					card.info(msg,infoView);
+					
+				}
 				else 
 					msgView.append(msg+"\n");
-		
 
 			}
 			
 		}catch(IOException ie) {
 			msgView.append(ie+"\n");
 		}
-		msgView.append("Á¢¼ÓÀÌ ²÷°å½À´Ï´Ù.");
+		msgView.append("ì ‘ì†ì´ ëŠê²¼ìŠµë‹ˆë‹¤.");
 		
 	}
 
 	private void playersInfo() {
 		int count = pList.getItemCount();
 		if(roomNumber == 0) {
-			pInfo.setText("´ë±â½Ç : "+count+"¸í");
+			pInfo.setText("ëŒ€ê¸°ì‹¤ : "+count+"ëª…");
 		}
 		else
-			pInfo.setText(roomNumber +"¹ø ¹æ:"+count+"¸í");
+			pInfo.setText(roomNumber +"ë²ˆ ë°©:"+count+"ëª…");
 		
 		if (count==2 && roomNumber !=0){
 			startButton.setEnabled(true);
@@ -261,23 +425,26 @@ public class client extends Frame implements Runnable, ActionListener {
 	}
 	private void connect() {
 		try {
-			msgView.append("¼­¹ö¿¡ ¿¬°áÀ» ¿äÃ»ÇÕ´Ï´Ù.\n");
-			socket = new Socket("127.0.0.1",7778);
-			msgView.append("----¿¬°á ¼º°ø ---- \n");
-			msgView.append("ÀÌ¸§À» ÀÔ·ÂÇÏ°í ´ë±â½Ç·Î ÀÔÀåÇÏ¼¼¿ä.\n");
+			msgView.append("ì„œë²„ì— ì—°ê²°ì„ ìš”ì²­í•©ë‹ˆë‹¤.\n");
+			socket = new Socket("127.0.0.1",7780);
+			msgView.append("----ì—°ê²° ì„±ê³µ ---- \n");
+			msgView.append("ì´ë¦„ì„ ì…ë ¥í•˜ê³  ëŒ€ê¸°ì‹¤ë¡œ ì…ì¥í•˜ì„¸ìš”.\n");
 			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			writer = new PrintWriter(socket.getOutputStream(),true);
 			new Thread(this).start();
+			card.setWriter(writer);
 
 		}catch(Exception e) {
-			msgView.append(e+"\n\n ¿¬°á½ÇÆĞ ....\n");
+			msgView.append(e+"\n\n ì—°ê²°ì‹¤íŒ¨ ....\n");
 		}
 	}
 	public static void main(String[] args) {
-		client c = new client("ÀÎµğ¾ğ Æ÷Ä¿");
-		c.setSize(1000,1000);
+		
+		client c = new client("ì¸ë””ì–¸ í¬ì»¤");
+		c.setSize(1000,600);
 		c.setVisible(true);
 		c.connect();
+			
 	}
 
 }
