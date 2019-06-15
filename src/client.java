@@ -20,6 +20,7 @@ import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 
+
 class Card extends JFrame implements ActionListener{
 	private JLabel l1;
 	private JLabel l2;
@@ -32,9 +33,24 @@ class Card extends JFrame implements ActionListener{
 	private PrintWriter writer;
 	private JTextField input;
 	private JButton button;
-	
+	private JLabel label;
+	private JLabel how;
+	private JLabel how_your;
+	private String real;
 	int[] card = new int[11];
+	private int my_chip;
+	private int your_chip;
+	
+	Label temp = new Label();
+	
+	int total = 0;
 	void init() {
+		my_chip =40;
+		your_chip =40;
+		String s = Integer.toString(my_chip);
+		String s2 = Integer.toString(your_chip);
+		how.setText("현재 나의 칩 개수 :"+s);
+		how_your.setText("현재 상대 칩 개수:"+s2);
 		 for(int i=1;i<=10;i++) {
 			 card[i] = i;
 		 }
@@ -54,9 +70,10 @@ class Card extends JFrame implements ActionListener{
 				 break;
 			 }
 		 }
-		 
+		
 		 String s;
 		 s = Integer.toString(temp);
+		 real = s;
 		 writer.println("[CARD]"+s);
 	 }
 	
@@ -78,13 +95,27 @@ class Card extends JFrame implements ActionListener{
 		button = new JButton("배팅");
 		button.setBounds(100,480,70,25);
 		button.addActionListener(this);
+		label = new JLabel();
+		label.setBounds(300,480,100,50);
+		label.setText("총 배팅 금액:");
+		how = new JLabel();
+		how.setBounds(450,480,150,50);
+		how.setText("현재 나의 칩 개수:");
+		how_your = new JLabel();
+		how_your.setBounds(450,500,150,50);
+		how_your.setText("현재 상대방의 칩 개수:");
+		p.add(how_your);
+		p.add(how);
+		p.add(label);
 		p.add(l1);
 		p.add(l2);
 		p.add(input);
 		p.add(button);
 	}
-	public void startGame(String col,Label l) {
+	public void startGame(String col,Label l) throws InterruptedException {
+		temp = l;
 		running = true;
+		Thread.sleep(2000);
 		if(col.equals("FIRST")) {
 			enable = true;
 			l.setText("칩을 배팅 하십시오.");
@@ -124,34 +155,120 @@ class Card extends JFrame implements ActionListener{
 		this.writer = writer;
 	}
 	
-	public void set_op(String s,Container p) {
-		try {
-			i2 = ImageIO.read(new File("./image/card_"+s+".png"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public void set_op(String s,Container p,Label l,int game,Button startbutton) throws IOException, InterruptedException {
+		if(s.startsWith("[WIN]")) {
+			l.setText("상대방이 칩이 없기때문에 승리하셨습니다.");
+			Thread.sleep(3000);
+			i1 = ImageIO.read(new File("./image/card_0.png"));
+			i2 = ImageIO.read(new File("./image/card_0.png"));
+			l1.setIcon(new ImageIcon(i1));
+			l2.setIcon(new ImageIcon(i2));
+			l.setText("게임을 원하시면 게임시작을 눌러주세요");
+			startbutton.setEnabled(true);
+			game = 1;
 		}
-		l2.setIcon(new ImageIcon(i2));
-	}
+		
+		else if(s.startsWith("W") || s.startsWith("L")||s.startsWith("D")) {
+			i1 = ImageIO.read(new File("./image/card_"+real+".png"));
+			l1.setIcon(new ImageIcon(i1));
+			if(s.startsWith("W")) {
+				my_chip = my_chip + total;
+				total =0;
+				String j = Integer.toString(total);
+				String k = Integer.toString(my_chip);
+				how.setText("현재 나의 칩 개수 :"+k);
+				label.setText("배팅 칩 개수:"+j);
+				l.setText("당신이 이겼습니다.");
+			}
+			else if(s.startsWith("L")) {
+				String k = Integer.toString(my_chip);
+				your_chip = your_chip + total;
+				total = 0;
+				String j = Integer.toString(total);
+				String m = Integer.toString(your_chip);
+				how_your.setText("현재 상대 칩 개수 :"+m);
+				how.setText("현재 나의 칩 개수 :"+k);
+				label.setText("배팅 칩 개수:"+j);
+				l.setText("당신이 졌습니다.");
+			}
+			else if(s.startsWith("D")) {
+				l.setText("상대방과 나의 카드가 같으므로 무승부 입니다.");
+			}
+			if(my_chip==0) {
+				writer.print("[LOSE]");
+				l.setText("가지고 있는 칩이 없기 때문에 패배하셨습니다.");
+				Thread.sleep(3000);
+				i1 = ImageIO.read(new File("./image/card_0.png"));
+				i2 = ImageIO.read(new File("./image/card_0.png"));
+				l1.setIcon(new ImageIcon(i1));
+				l2.setIcon(new ImageIcon(i2));
+				game = 0;
+				l.setText("게임을 원하시면 게임시작을 눌러주세요");
+				startbutton.setEnabled(true);
+			}
+			else if(my_chip>0) {
+				Thread.sleep(2000);
+				l.setText("딜러가 카드를 나눠주는 중입니다 ... ");
+				Thread.sleep(5000);
+				writer.println("[START]");
+				i1 = ImageIO.read(new File("./image/card_"+0+".png"));
+				l1.setIcon(new ImageIcon(i1));
+			}
+			
+		}
+		else{
+			try {
+				i2 = ImageIO.read(new File("./image/card_"+s+".png"));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			l2.setIcon(new ImageIcon(i2));
+		}
+		}
 	
-	public void actionPerformed(ActionEvent ac) {
-		if(ac.getSource() == button) {
+	
+	public void info(String s,Label l,Container p) {
+		String a = "상대방이 "+s.substring(6)+"개를 배팅하였습니다. 배팅하십시오.";
+		String s2 = s.substring(6);
+		l.setText(a);
+		total += Integer.parseInt(s2);
+		your_chip -= Integer.parseInt(s2);
+		String t2 = Integer.toString(your_chip);
+		how_your.setText("현재 상대 칩 개수 :"+t2);
+		String t = Integer.toString(total);
+		label.setText("총 배팅금액:"+t);
+
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		if(e.getSource() == button) {
 			String s = "[CHIP]";
 			String k = input.getText();
 			s = s+k;
 			writer.println(s);
-			
+			my_chip -= Integer.parseInt(k);
+			total += Integer.parseInt(k);
+			String t = Integer.toString(total);
+			temp.setText("상대방이 배팅 중 입니다.. ");
+			label.setText("총 배팅금액:"+t);
+			how.setText("현재 나의 칩 개수 :"+my_chip);
 		}
+		
 	}
-	public void info(String s,Label l) {
-		String a = "상대방이 "+s.substring(6)+"개를 배팅하였습니다.";
-		l.setText(a);
-	}
+
+
+
+
+	
 	
 }
 
 
 public class client extends JFrame implements Runnable, ActionListener {
+	
+	
+	private int game =0;
 	
 	private TextArea msgView = new TextArea("",1,1,1);
 	private TextField sendBox = new TextField("");
@@ -339,7 +456,12 @@ public class client extends JFrame implements Runnable, ActionListener {
 				}
 				else if(msg.startsWith("[CARD]")) {
 					String temp = msg.substring(6);
-					card.set_op(temp,this);
+					try {
+						card.set_op(temp,this,infoView,game,startButton);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				else if(msg.startsWith("[FULL]")) {
 					infoView.setText("방이 차서 입장할 수 없습니다.");
@@ -367,25 +489,34 @@ public class client extends JFrame implements Runnable, ActionListener {
 					if(roomNumber != 0)
 						endGame("상대가 나갔습니다.");
 				}
-				else if(msg.startsWith("[DROPGAME]")) {
+				else if(msg.startsWith("[WHO]")) {
+					if(game == 0) {
+						card.init();
+						String who = msg.substring(5);
+						card.startGame(who,infoView);
+						card.call_number();
+						stopButton.setEnabled(true);
+						game = 1;
+					}
+					else {
+						String who = msg.substring(5);
+						card.startGame(who,infoView);
+						card.call_number();
+						stopButton.setEnabled(true);
+					}
+
+				}
+				else if(msg.startsWith("[WHOO]")) {
+					String who = msg.substring(6);
+					card.startGame(who,infoView);
+	
+				}
+				else if(msg.startsWith("[CHIP]")) {
+					card.info(msg,infoView,this);
 					
 				}
 				else if(msg.startsWith("[WIN]")) {
-					
-				}
-				else if(msg.startsWith("[LOSE]")) {
-					
-				}
-				else if(msg.startsWith("[WHO]")) {
-					card.init();
-					String who = msg.substring(5);
-					card.startGame(who,infoView);
-					card.call_number();
-					stopButton.setEnabled(true);
-				}
-				else if(msg.startsWith("[CHIP]")) {
-					card.info(msg,infoView);
-					
+					card.set_op(msg,this,infoView,game,startButton);
 				}
 				else 
 					msgView.append(msg+"\n");
@@ -394,6 +525,9 @@ public class client extends JFrame implements Runnable, ActionListener {
 			
 		}catch(IOException ie) {
 			msgView.append(ie+"\n");
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		msgView.append("접속이 끊겼습니다.");
 		
