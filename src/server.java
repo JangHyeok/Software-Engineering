@@ -110,7 +110,7 @@ public class server {
 					  
 					  else if(msg.startsWith("[START]")){
 						  ready=true;  
-						  
+						  bMan.card_and_chip_init(this);
 						  if(bMan.isReady(roomNumber)){  
 							  who_first =rnd.nextInt(2);
 							  if(who_first==0) {
@@ -131,19 +131,13 @@ public class server {
 						  ready=false;
 						  bMan.sendTorthers(this, "[DROPGAME]");
 						  }
-					 
-					  else if(msg.startsWith("[WIN]")){
-						  ready=false;
-						  writer.println("[WIN]");
-						  bMan.sendTorthers(this, "[LOSE]");
-						  }
+					
 					  else if(msg.startsWith("[CHIP]")) {
 						  String m = msg.substring(6);
 						  bMan.input(this,m,who_first);
 					  }
-					  else if(msg.startsWith("[LOSE]")) {
+					  else if(msg.startsWith("[STOPTHEGAME]")) {
 						  ready = false;
-						  bMan.sendTorthers(this,"[WIN]");
 					  }
 					  }
 				  }catch(Exception e){
@@ -347,6 +341,16 @@ public class server {
 					  sb.append(getrt(i).getUserName()+"\t");
 			  return sb.toString();
 			  }
+		  void card_and_chip_init(Room_Thread rt) {
+			  for(int i=0;i<size();i++) {
+				  if(getRoomNumber(i) == rt.getRoomNumber()&&getrt(i)==rt) {
+					  cards[i][0] = -1;
+					  cards[i][1] = -1;
+					  chips[i][0] = -1;
+					  chips[i][1] = -1;
+				  }
+			  }
+		  }
 		  }
 		
 }
