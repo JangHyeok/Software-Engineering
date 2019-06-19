@@ -40,6 +40,7 @@ class Card extends JFrame implements ActionListener{
 	int[] card = new int[11];
 	private int my_chip;
 	private int your_chip;
+	private int your_bet_chip;
 	
 	Label temp = new Label();
 	
@@ -80,8 +81,8 @@ class Card extends JFrame implements ActionListener{
 	private int chip = 40;
 	public Card(Container p) {
 		try {
-			i1 = ImageIO.read(new File("./image/card_0.png"));
-			i2 = ImageIO.read(new File("./image/card_0.png"));
+			i1 = ImageIO.read(new File("./image/0.png"));
+			i2 = ImageIO.read(new File("./image/0.png"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -159,8 +160,8 @@ class Card extends JFrame implements ActionListener{
 		if(s.startsWith("[WIN]")) {
 			l.setText("상대방이 칩이 없기때문에 승리하셨습니다.");
 			Thread.sleep(3000);
-			i1 = ImageIO.read(new File("./image/card_0.png"));
-			i2 = ImageIO.read(new File("./image/card_0.png"));
+			i1 = ImageIO.read(new File("./image/0.png"));
+			i2 = ImageIO.read(new File("./image/0.png"));
 			l1.setIcon(new ImageIcon(i1));
 			l2.setIcon(new ImageIcon(i2));
 			l.setText("게임을 원하시면 게임시작을 눌러주세요");
@@ -169,7 +170,7 @@ class Card extends JFrame implements ActionListener{
 		}
 		
 		else if(s.startsWith("W") || s.startsWith("L")||s.startsWith("D")) {
-			i1 = ImageIO.read(new File("./image/card_"+real+".png"));
+			i1 = ImageIO.read(new File("./image/"+real+".png"));
 			l1.setIcon(new ImageIcon(i1));
 			if(s.startsWith("W")) {
 				my_chip = my_chip + total;
@@ -198,8 +199,8 @@ class Card extends JFrame implements ActionListener{
 				writer.print("[LOSE]");
 				l.setText("가지고 있는 칩이 없기 때문에 패배하셨습니다.");
 				Thread.sleep(3000);
-				i1 = ImageIO.read(new File("./image/card_0.png"));
-				i2 = ImageIO.read(new File("./image/card_0.png"));
+				i1 = ImageIO.read(new File("./image/0.png"));
+				i2 = ImageIO.read(new File("./image/0.png"));
 				l1.setIcon(new ImageIcon(i1));
 				l2.setIcon(new ImageIcon(i2));
 				game = 0;
@@ -211,14 +212,14 @@ class Card extends JFrame implements ActionListener{
 				l.setText("딜러가 카드를 나눠주는 중입니다 ... ");
 				Thread.sleep(5000);
 				writer.println("[START]");
-				i1 = ImageIO.read(new File("./image/card_"+0+".png"));
+				i1 = ImageIO.read(new File("./image/"+0+".png"));
 				l1.setIcon(new ImageIcon(i1));
 			}
 			
 		}
 		else{
 			try {
-				i2 = ImageIO.read(new File("./image/card_"+s+".png"));
+				i2 = ImageIO.read(new File("./image/"+s+".png"));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -233,6 +234,7 @@ class Card extends JFrame implements ActionListener{
 		String s2 = s.substring(6);
 		l.setText(a);
 		total += Integer.parseInt(s2);
+		your_bet_chip = Integer.parseInt(s2);
 		your_chip -= Integer.parseInt(s2);
 		String t2 = Integer.toString(your_chip);
 		how_your.setText("현재 상대 칩 개수 :"+t2);
@@ -245,7 +247,15 @@ class Card extends JFrame implements ActionListener{
 		if(e.getSource() == button) {
 			String s = "[CHIP]";
 			String k = input.getText();
-			s = s+k;
+			if(Integer.parseInt(k)<1) {
+				temp.setText("배팅 금액은 1보다 커야 합니다.");
+				
+			}
+			else if(Integer.parseInt(k)<your_bet_chip) {
+				temp.setText("배팅금액은 "+Integer.toString(your_bet_chip)+"보다 크거나 같아야 합니다.");
+			}
+			else{
+			s= s+k;
 			writer.println(s);
 			my_chip -= Integer.parseInt(k);
 			total += Integer.parseInt(k);
@@ -253,6 +263,7 @@ class Card extends JFrame implements ActionListener{
 			temp.setText("상대방이 배팅 중 입니다.. ");
 			label.setText("총 배팅금액:"+t);
 			how.setText("현재 나의 칩 개수 :"+my_chip);
+			}
 		}
 		
 	}
