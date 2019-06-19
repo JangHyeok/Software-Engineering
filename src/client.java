@@ -57,6 +57,16 @@ class Card extends JFrame implements ActionListener{
 		 }
 	 }
 	
+	void re_set() {
+		my_chip = 40;
+		your_chip =0;
+		your_bet_chip = 0;
+		total = 0;
+		how_your.setText("현재 상대방의 칩 개수:");
+		how.setText("현재 나의 칩 개수 :");
+		label.setText("총 배팅 금액:");
+	}
+	
 	public void call_number() {
 		 int temp;
 		 double randomV;
@@ -131,7 +141,6 @@ class Card extends JFrame implements ActionListener{
 	}
 	
 	public void stopGame() {
-		reset();
 		writer.println("[STOPGAME]");
 		enable = false;
 		running = false;
@@ -148,9 +157,6 @@ class Card extends JFrame implements ActionListener{
 			return true;
 	}
 	
-	public void reset() {
-		
-	}
 	public void setEnable(boolean enable) {
 		this.enable = enable;
 	}
@@ -159,19 +165,7 @@ class Card extends JFrame implements ActionListener{
 	}
 	
 	public void set_op(String s,Container p,Label l,int game,Button startbutton) throws IOException, InterruptedException {
-		if(s.startsWith("[WIN]")) {
-			l.setText("상대방이 칩이 없기때문에 승리하셨습니다.");
-			Thread.sleep(3000);
-			i1 = ImageIO.read(new File("./image/0.png"));
-			i2 = ImageIO.read(new File("./image/0.png"));
-			l1.setIcon(new ImageIcon(i1));
-			l2.setIcon(new ImageIcon(i2));
-			l.setText("게임을 원하시면 게임시작을 눌러주세요");
-			startbutton.setEnabled(true);
-			game = 1;
-		}
-		
-		else if(s.startsWith("W") || s.startsWith("L")||s.startsWith("D")) {
+		if(s.startsWith("W") || s.startsWith("L")||s.startsWith("D")) {
 			i1 = ImageIO.read(new File("./image/"+real+".png"));
 			l1.setIcon(new ImageIcon(i1));
 			if(s.startsWith("W")) {
@@ -182,6 +176,7 @@ class Card extends JFrame implements ActionListener{
 				how.setText("현재 나의 칩 개수 :"+k);
 				label.setText("배팅 칩 개수:"+j);
 				l.setText("당신이 이겼습니다.");
+				Thread.sleep(5000);
 			}
 			else if(s.startsWith("L")) {
 				String k = Integer.toString(my_chip);
@@ -193,6 +188,7 @@ class Card extends JFrame implements ActionListener{
 				how.setText("현재 나의 칩 개수 :"+k);
 				label.setText("배팅 칩 개수:"+j);
 				l.setText("당신이 졌습니다.");
+				Thread.sleep(5000);
 			}
 			else if(s.startsWith("D")) {
 				l.setText("상대방과 나의 카드가 같으므로 무승부 입니다.");
@@ -200,22 +196,34 @@ class Card extends JFrame implements ActionListener{
 			if(my_chip==0) {
 				writer.print("[LOSE]");
 				l.setText("가지고 있는 칩이 없기 때문에 패배하셨습니다.");
-				Thread.sleep(3000);
+				Thread.sleep(5000);
 				i1 = ImageIO.read(new File("./image/0.png"));
 				i2 = ImageIO.read(new File("./image/0.png"));
 				l1.setIcon(new ImageIcon(i1));
 				l2.setIcon(new ImageIcon(i2));
 				game = 0;
+				writer.println("[STOPTHEGAME]");
 				l.setText("게임을 원하시면 게임시작을 눌러주세요");
 				startbutton.setEnabled(true);
 			}
-			else if(my_chip>0) {
-				Thread.sleep(2000);
+			else if(my_chip>0&&your_chip>0) {
 				l.setText("딜러가 카드를 나눠주는 중입니다 ... ");
-				Thread.sleep(5000);
 				writer.println("[START]");
+				Thread.sleep(5000);
 				i1 = ImageIO.read(new File("./image/"+0+".png"));
 				l1.setIcon(new ImageIcon(i1));
+			}
+			else if(your_chip==0) {
+				l.setText("상대방이 칩이 없기때문에 승리하셨습니다.");
+				Thread.sleep(5000);
+				i1 = ImageIO.read(new File("./image/0.png"));
+				i2 = ImageIO.read(new File("./image/0.png"));
+				l1.setIcon(new ImageIcon(i1));
+				l2.setIcon(new ImageIcon(i2));
+				writer.println("[STOPTHEGAME]");
+				l.setText("게임을 원하시면 게임시작을 눌러주세요");
+				startbutton.setEnabled(true);
+				game = 1;
 			}
 			
 		}
@@ -410,6 +418,8 @@ public class client extends JFrame implements Runnable, ActionListener {
 				writer.println("[START]");
 				infoView.setText("상대의 결정을 기다리는 중 입니다,");
 				startButton.setEnabled(false);
+				card.init();
+
 			}
 			catch(Exception e) {}
 		}
@@ -485,11 +495,13 @@ public class client extends JFrame implements Runnable, ActionListener {
 					nameList(msg.substring(9));
 				}
 				else if(msg.startsWith("[ENTER]")) {
+					card.re_set();
 					pList.add(msg.substring(7));
 					playersInfo();
 					msgView.append("["+msg.substring(7)+"]님이 입장하였습니다.");
 				}
 				else if(msg.startsWith("[EXIT]")) {
+					card.re_set();
 					pList.remove(msg.substring(6));
 					playersInfo();
 					msgView.append("["+msg.substring(6)+"]님이 다른 방으로 입장하였습니다.\n");
@@ -498,6 +510,7 @@ public class client extends JFrame implements Runnable, ActionListener {
 					}
 				}
 				else if(msg.startsWith("[DISCONNECT]")) {
+					card.re_set();
 					pList.remove(msg.substring(12));
 					playersInfo();
 					msgView.append("["+msg.substring(12)+"]님이 접속을 끊었습니다.");
@@ -530,9 +543,9 @@ public class client extends JFrame implements Runnable, ActionListener {
 					card.info(msg,infoView,this);
 					
 				}
-				else if(msg.startsWith("[WIN]")) {
-					card.set_op(msg,this,infoView,game,startButton);
-				}
+				//else if(msg.startsWith("[WIN]")) {
+					//card.set_op(msg,this,infoView,game,startButton);
+				//}
 				else 
 					msgView.append(msg+"\n");
 
