@@ -120,10 +120,12 @@ class Card extends JFrame implements ActionListener{
 		if(col.equals("FIRST")) {
 			enable = true;
 			l.setText("칩을 배팅 하십시오.");
+			button.setEnabled(true);
 		}
 		else {
 			enable = false;
 			l.setText("상대방이 칩을 베팅 중입니다.");
+			button.setEnabled(false);
 		}
 		
 	}
@@ -231,6 +233,7 @@ class Card extends JFrame implements ActionListener{
 	
 	public void info(String s,Label l,Container p) {
 		String a = "상대방이 "+s.substring(6)+"개를 배팅하였습니다. 배팅하십시오.";
+		button.setEnabled(true);
 		String s2 = s.substring(6);
 		l.setText(a);
 		total += Integer.parseInt(s2);
@@ -261,6 +264,7 @@ class Card extends JFrame implements ActionListener{
 			total += Integer.parseInt(k);
 			String t = Integer.toString(total);
 			temp.setText("상대방이 배팅 중 입니다.. ");
+			button.setEnabled(false);
 			label.setText("총 배팅금액:"+t);
 			how.setText("현재 나의 칩 개수 :"+my_chip);
 			}
